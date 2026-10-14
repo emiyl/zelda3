@@ -13,7 +13,7 @@ cd zelda3
 ```sh
 python3 -m pip install -r requirements.txt
 ```
-5. Install SDL2
+5. Install SDL2 (only needed for the Makefile build; CMake uses the bundled SDL2)
 * Ubuntu/Debian `sudo apt install libsdl2-dev`
 * Fedora Linux `sudo dnf install SDL2-devel`
 * Arch Linux `sudo pacman -S sdl2`
@@ -36,6 +36,29 @@ make clean all  # clear gen+obj and rebuild
 CC=clang make   # specify compiler
 ```
 </details>
+
+## Compiling with CMake
+
+Install CMake 3.16 or newer and a C compiler. This build compiles and statically
+links SDL2 from `third_party/SDL`; no system SDL2 installation is needed.
+
+From the repository root:
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release --parallel
+```
+
+Asset extraction is separate from the CMake build. If `zelda3_assets.dat` is
+missing, install the Python requirements above, place your US ROM at
+`zelda3.sfc`, and run:
+```sh
+python3 assets/restool.py --extract-from-rom
+```
+
+Run `./build/zelda3` from the repository root on Linux/macOS. With a
+multi-configuration generator such as Visual Studio, run
+`build/Release/zelda3.exe` instead. Keep `zelda3.ini` and `zelda3_assets.dat`
+in the working directory.
 
 ## Nintendo Switch
 
