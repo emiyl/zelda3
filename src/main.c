@@ -276,7 +276,9 @@ static const struct RendererFuncs kSdlRendererFuncs  = {
 
 void OpenGLRenderer_Create(struct RendererFuncs *funcs, bool use_opengl_es);
 
+#ifndef __IPHONEOS__
 #undef main
+#endif
 int main(int argc, char** argv) {
   argc--, argv++;
   const char *config_file = NULL;
@@ -289,6 +291,15 @@ int main(int argc, char** argv) {
   ParseConfigFile(config_file);
   LoadAssets();
   LoadLinkGraphics();
+
+#ifdef __IPHONEOS__
+  char *save_path = SDL_GetPrefPath("zelda3", "zelda3");
+  if (!save_path)
+    Die(StrFmt("Unable to locate the save directory: %s", SDL_GetError()));
+  if (chdir(save_path) != 0)
+    Die(StrFmt("Unable to enter the save directory: %s", save_path));
+  SDL_free(save_path);
+#endif
 
   ZeldaInitialize();
   g_zenv.ppu->extraLeftRight = UintMin(g_config.extended_aspect_ratio, kPpuExtraLeftRight);

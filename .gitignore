@@ -7,7 +7,7 @@
 *.aps
 /obj/
 /bin/
-/build/
+/build*
 /assets/overworld/*.yaml
 /assets/dungeon/*.yaml
 /assets/img/

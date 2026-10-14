@@ -1,5 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
+
+option(ZELDA3_IOS "Build an iOS app bundle" OFF)
+if(ZELDA3_IOS)
+  set(CMAKE_SYSTEM_NAME iOS)
+endif()
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE STRING "Minimum iOS version")
+endif()
+
 project(zelda3 LANGUAGES C)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+  set(ZELDA3_IOS ON)
+endif()
 
 set(SDL_SHARED OFF CACHE BOOL "Build shared SDL2" FORCE)
 set(SDL_STATIC ON CACHE BOOL "Build static SDL2" FORCE)
@@ -24,6 +37,31 @@ if(TARGET SDL2::SDL2main)
   target_link_libraries(zelda3 PRIVATE SDL2::SDL2main)
 endif()
 target_link_libraries(zelda3 PRIVATE SDL2::SDL2-static)
+
+if(ZELDA3_IOS)
+  if(NOT TARGET SDL2::SDL2main)
+    message(FATAL_ERROR "The iOS build requires SDL2main; set SDL2_DISABLE_SDL2MAIN=OFF.")
+  endif()
+  if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/zelda3_assets.dat")
+    message(FATAL_ERROR "Generate zelda3_assets.dat with python3 assets/restool.py --extract-from-rom before configuring for iOS.")
+  endif()
+  set(ZELDA3_RESOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/zelda3.ini"
+    "${CMAKE_CURRENT_SOURCE_DIR}/zelda3_assets.dat"
+  )
+  target_sources(zelda3 PRIVATE ${ZELDA3_RESOURCES})
+  set_source_files_properties(${ZELDA3_RESOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  set_target_properties(zelda3 PROPERTIES
+    MACOSX_BUNDLE TRUE
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/ios/Info.plist.in"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "org.zelda3.zelda3"
+    MACOSX_BUNDLE_BUNDLE_NAME "Zelda3"
+    MACOSX_BUNDLE_BUNDLE_VERSION "1"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
+    XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2"
+    XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
+  )
+endif()
 
 if(WIN32)
   enable_language(RC)

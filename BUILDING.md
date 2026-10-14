@@ -60,6 +60,38 @@ multi-configuration generator such as Visual Studio, run
 `build/Release/zelda3.exe` instead. Keep `zelda3.ini` and `zelda3_assets.dat`
 in the working directory.
 
+### iOS
+
+On macOS with Xcode and the iOS SDK installed, generate `zelda3_assets.dat`
+as described above, then configure in a separate build directory:
+```sh
+cmake -S . -B build-ios -G Xcode -DZELDA3_IOS=ON \
+  -DCMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM=YOUR_TEAM_ID
+```
+
+Open `build-ios/zelda3.xcodeproj`, select the `zelda3` target, choose your
+signing team and a unique bundle identifier, then build/run on your device.
+Replace `YOUR_TEAM_ID` with your Apple development team ID. To compile
+without signing instead, omit the team argument and configure with
+`-DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO`; such a build cannot be
+installed on a physical device until signed.
+The default minimum iOS version is 15.0; override it with
+`-DCMAKE_OSX_DEPLOYMENT_TARGET=<version>` when configuring.
+The app bundles `zelda3.ini` and `zelda3_assets.dat`; saves go in the app's
+writable preferences directory. No ROM is bundled. Use a game controller;
+this option does not add touch controls.
+
+For an unsigned simulator build:
+```sh
+cmake -S . -B build-ios-simulator -G Xcode -DZELDA3_IOS=ON \
+  -DCMAKE_OSX_SYSROOT=iphonesimulator
+cmake --build build-ios-simulator --config Release --target zelda3 -- \
+  CODE_SIGNING_ALLOWED=NO
+```
+
+Use a fresh build directory when switching between desktop, device, and
+simulator targets. Desktop builds remain unchanged when `ZELDA3_IOS` is off.
+
 ## Nintendo Switch
 
 You need [DevKitPro](https://devkitpro.org/wiki/Getting_Started) and [Atmosphere](https://github.com/Atmosphere-NX/Atmosphere) installed.
